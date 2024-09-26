@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Webcam Toggle Example</title>
+    <style>
+      #display {
+        font-size: 2em;
+        margin: 20px;
+        text-align: center;
+        font-family: monospace;
+      }
+      #progress {
+        font-size: 1.5em;
+        margin: 20px;
+        text-align: center;
+        font-family: monospace;
+      }
+      #credit {
+        font-size: 1.2em;
+        margin: 20px;
+        text-align: center;
+        font-family: monospace;
+        margin-top: 10vh;
+        opacity: 80%;
+      }
+      #credit a {
+        text-decoration: none;
+        border-bottom: 1px dotted;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="display">Starting...</div>
+    <div id="progress">Progress:</div>
+    <div id="credit">
+      Made by
+      <a target="_blank" href="https://www.linkedin.com/in/nihal-tiwari-09023818b/"
+        >Nihal Tiwari</a
+      >
+    </div>
+    <script>
+      let stream = null;
+      const displayElement = document.getElementById("display");
+      const progressElement = document.getElementById("progress");
+
+      async function startWebcam() {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          return stream;
+        } catch (error) {
+          console.error("Error accessing webcam:", error);
+        }
+      }
+
+      function stopWebcam() {
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+          stream = null;
+        }
+      }
+
+      function textToMorse(text) {
+        const morseCodeMap = {
+          A: ".-",
+          B: "-...",
+          C: "-.-.",
+          D: "-..",
+          E: ".",
+          F: "..-.",
+          G: "--.",
+          H: "....",
+          I: "..",
+          J: ".---",
+          K: "-.-",
+          L: ".-..",
+          M: "--",
+          N: "-.",
+          O: "---",
+          P: ".--.",
+          Q: "--.-",
+          R: ".-.",
+          S: "...",
+          T: "-",
+          U: "..-",
+          V: "...-",
+          W: ".--",
+          X: "-..-",
+          Y: "-.--",
+          Z: "--..",
+          1: ".----",
+          2: "..---",
+          3: "...--",
+          4: "....-",
+          5: ".....",
+          6: "-....",
+          7: "--...",
+          8: "---..",
+          9: "----.",
+          0: "-----",
+          ".": ".-.-.-",
+          ",": "--..--",
+          "?": "..--..",
+          "'": ".----.",
+          "!": "-.-.--",
+          "/": "-..-.",
+          "(": "-.--.",
+          ")": "-.--.-",
+          "&": ".-...",
+          ":": "---...",
+          ";": "-.-.-.",
+          "=": "-...-",
+          "+": ".-.-.",
+          "-": "-....-",
+          _: "..--.-",
+          '"': ".-..-.",
+          "@": ".--.-",
+          " ": " ",
+        };
+        return text
+          .toUpperCase()
+          .split("")
+          .map((char) => morseCodeMap[char] || "")
+          .join(" ");
+      }
+
+      async function run() {
+        const userInput = prompt("Enter a string to convert to Morse code:");
+        if (!userInput) {
+          displayElement.innerText = "No input provided.";
+          return;
+        }
+
+        const morseCode = textToMorse(userInput);
+        progressElement.innerText = `Morse Code: ${morseCode}`;
+
+        await startWebcam();
+
+        // Define durations for dots and dashes
+        const dotDuration = 100; // Duration for dot (in milliseconds)
+        const dashDuration = 300; // Duration for dash (in milliseconds)
+        const spaceDuration = 700; // Duration for space between letters and words (in milliseconds)
+
+        let index = 0;
+        let morseIndex = 0;
+
+        function toggle() {
+          if (index < morseCode.length) {
+            const char = morseCode[index];
+
+            if (char === ".") {
+              if (!stream) {
+                startWebcam().then(() => {
+                  setTimeout(() => {
+                    stopWebcam();
+                    displayElement.innerText = `Morse Code Progress: ${morseCode.slice(
+                      0,
+                      index + 1
+                    )}`;
+                    index++;
+                    setTimeout(toggle, spaceDuration);
+                  }, dotDuration);
+                });
+              } else {
+                setTimeout(() => {
+                  stopWebcam();
+                  displayElement.innerText = `Morse Code Progress: ${morseCode.slice(
+                    0,
+                    index + 1
+                  )}`;
+                  index++;
+                  setTimeout(toggle, spaceDuration);
+                }, dotDuration);
+              }
+            } else if (char === "-") {
+              if (!stream) {
+                startWebcam().then(() => {
+                  setTimeout(() => {
+                    stopWebcam();
+                    displayElement.innerText = `Morse Code Progress: ${morseCode.slice(
+                      0,
+                      index + 1
+                    )}`;
+                    index++;
+                    setTimeout(toggle, spaceDuration);
+                  }, dashDuration);
+                });
+              } else {
+                setTimeout(() => {
+                  stopWebcam();
+                  displayElement.innerText = `Morse Code Progress: ${morseCode.slice(
+                    0,
+                    index + 1
+                  )}`;
+                  index++;
+                  setTimeout(toggle, spaceDuration);
+                }, dashDuration);
+              }
+            } else if (char === " ") {
+              setTimeout(() => {
+                index++;
+                setTimeout(toggle, spaceDuration);
+              }, spaceDuration);
+            } else {
+              setTimeout(() => {
+                index++;
+                setTimeout(toggle, spaceDuration * 3);
+              }, spaceDuration * 3);
+            }
+          } else {
+            index = 0;
+            setTimeout(toggle, spaceDuration);
+          }
+        }
+
+        toggle();
+      }
+
+      run();
+    </script>
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-3YY62G0H0M"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-3YY62G0H0M");
+    </script>
+  </body>
+</html>
